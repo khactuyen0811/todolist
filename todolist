@@ -1,0 +1,338 @@
+using System;
+using System.Collections.Generic;
+using System.Data;
+using System.Linq;
+using System.Net;
+using System.Text;
+using System.Threading.Tasks;
+using System.Xml.Serialization;
+
+namespace ConsoleApp3
+{
+    internal class Program
+    {
+
+        static string[] todoList = new string[1000]; // Danh sách công việc lưu tối đa 1000 cv
+       
+        static int n_tasks = 0; // Số lượng công việc hiện tại
+                                // Trạng thái công việc, true là đã hoàn thành, false là chưa hoàn thành
+        static bool[] todolist_status = new bool[1000];
+      
+        // Loại công việc (3 loại - 1.Làm web/app - 2.Đi dạy - 3. Rửa bát)
+        static int[] todolist_type = new int[1000];
+       
+        // Số giờ thực hiện ước tính để làm xong nhiệm vụ
+        static double[] todolist_hour = new double[1000];
+        
+        // Định nghĩa hàm void với nhiệm vụ là in ra màn hình thông tin danh sách task
+        // Định nghĩa hàm với yêu cầu là truyền vào các tham số n_tasks, todolist, todolist_status, todolist_type, todolist_hour
+        static void printListTask()
+        {
+            Console.WriteLine("------------------List Tasks--------------------");
+            for (int i = 0; i < n_tasks; i++)
+            {
+
+                Console.WriteLine($"Task no{i + 1}: {todoList[i]} -- State: " +
+                  
+                    $"Type: {getTypeName(todolist_type[i])} -- " +
+                    
+                    $" Estimated hours: {todolist_hour[i]} -- " +
+                    
+                    (todolist_status[i] ? "Done" : "Not done")
+            
+                    + $" -- Cost: {getTaskCost(todolist_type[i], todolist_hour[i])} USD"
+                    );
+            }
+        }
+
+        static int inputTaskType(int n_tasks)
+        {
+            int taskType = 0;
+            bool isCorrectInput = false;
+
+            while (!isCorrectInput)
+            {
+                try
+                {
+                    // Nhập loại công việc 
+                    Console.WriteLine("Input your no" + n_tasks + " task type (1.web/app - 2.Teaching - 3.Washing Dishes): ");
+                    taskType = Convert.ToInt32(Console.ReadLine());
+                    if (taskType != 1 && taskType != 2 && taskType != 3)
+                    {
+                        isCorrectInput = false;
+                        Console.WriteLine("Wrong input task type (1.web/app - 2.Teaching - 3.Washing Dishes). Please input again! ");
+                    }
+                    else
+                    {
+                        isCorrectInput = true;
+                    }
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine("There is an error. Please input again!!");
+                    isCorrectInput = false;
+                }
+            }
+            return taskType;
+        }
+
+        static string getTypeName(int typeId)
+        {
+            switch (typeId)
+            {
+                case 1:
+                    return "Coding Web/App";
+                case 2:
+                    return "Teaching";
+                case 3:
+                    return "Washing Dishes";
+                default:
+                    return "Undefined";
+            }
+        }
+
+        static double getTaskCost(int typeId, double taskHour)
+        {
+            switch (typeId)
+            {
+                case 1:
+                    return taskHour * 10;
+                case 2:
+                    return taskHour * 1.5;
+                case 3:
+                    return taskHour * 40;
+                default:
+                    return 9999999999999999999;
+            }
+        }
+
+        static void menu()
+        {
+            while (true)
+            {
+                Console.WriteLine("Choose your action: ");
+                Console.WriteLine("0. Exit ");
+                Console.WriteLine("1. Add new task ");
+                Console.WriteLine("2. View all tasks ");
+                Console.WriteLine("3. Update all task status ");
+                Console.WriteLine("4. Remove a task ");
+                Console.WriteLine("5 update task ");
+                Console.WriteLine("6 find  task by price ");
+                Console.WriteLine("7 update  task by price ");
+                int choice = Convert.ToInt32(Console.ReadLine());
+                switch (choice)
+                {
+                    case 0:
+                        Console.WriteLine("Exited");
+                        return;
+                    case 1:
+                        Console.WriteLine("-- Add a new task --");
+                        createNewTasks();
+                        break;
+                    case 2:
+                        Console.WriteLine("-- View all tasks --");
+                        printListTask();
+                        break;
+                    case 3:
+                        Console.WriteLine("-- Update all task status --");
+                        updateAllTaskStatus();
+                        break;
+                    case 4:
+                        Console.WriteLine("-- Remove a task --");
+                        removeChooseTask();
+                        break;
+                    case 5:
+                        updateTaskInfo();
+                        break;
+                    case 6:
+                        FindTaskByPrice();
+                        break;
+                    case 7:
+                        ChangeTask();
+                        break;
+                    default:
+                        
+                        Console.WriteLine("Wrong choice! Choose again, please!");
+                        break;
+                }
+            }
+        }
+        static void removeChooseTask()
+        {
+           
+            Console.WriteLine(" which task do you want remove ? ");
+            int choose_index = Convert.ToInt32(Console.ReadLine());
+            for (int i = choose_index; i < n_tasks - 2; i++)
+            {
+                todoList[i] = todoList[i + 1];
+                todolist_hour[i] = todolist_hour[i + 1];
+                todolist_status[i] = todolist_status[i + 1];
+                todolist_type[i] = todolist_type[i + 1];
+            }
+            
+            todoList[n_tasks - 1] = null;
+            todolist_hour[n_tasks - 1] = new int();
+            todolist_status[n_tasks - 1] = new bool();
+            todolist_type[n_tasks - 1] = new int();
+            n_tasks--;
+        }
+         static void updateTaskInfo()
+            {
+            Console.WriteLine("which task you want update ");
+            int choice = Convert.ToInt32(Console.ReadLine());           
+            Console.WriteLine("Input your no" + choice + " task: ");
+            todoList[choice - 1] = Console.ReadLine();
+            todolist_type[choice - 1] = inputTaskType(choice);
+            Console.WriteLine("Input your no" + choice + " task hour: ");
+            todolist_hour[choice - 1] = Convert.ToDouble(Console.ReadLine());
+            todolist_status[choice - 1] = false;
+            
+            
+        }
+        static void UpdateTaskByPrice()
+        {
+            for (int t =0; t < n_tasks; t++)
+                if(getTaskCost(todolist_type[t], todolist_hour[t]) < getTaskCost(todolist_type[t +1], todolist_hour[t+1]))
+                {
+                    Console.WriteLine($"Task no{t + 1}: {todoList[t]} -- State: " +
+
+                            $"Type: {getTypeName(todolist_type[t])} -- " +
+
+                            $" Estimated hours: {todolist_hour[t]} -- " +
+
+                            (todolist_status[t] ? "Done" : "Not done")
+
+                            + $" -- Cost: {getTaskCost(todolist_type[t], todolist_hour[t])} USD"
+                            );
+                }
+            else
+                {
+                    Console.WriteLine($"Task no{t + 1}: {todoList[t]} -- State: " +
+
+                           $"Type: {getTypeName(todolist_type[t])} -- " +
+
+                           $" Estimated hours: {todolist_hour[t]} -- " +
+
+                           (todolist_status[t] ? "Done" : "Not done")
+
+                           + $" -- Cost: {getTaskCost(todolist_type[t], todolist_hour[t])} USD"
+                           );
+                }
+
+        }
+        static void ChangeTask()
+        {
+            for (int i = 0; i < n_tasks - 1; i++)
+            {
+                for (int j = 0; j < n_tasks - i - 1; j++)
+                {
+                    double costCurrent = getTaskCost(todolist_type[j], todolist_hour[j]);
+                    double costNext = getTaskCost(todolist_type[j + 1], todolist_hour[j + 1]);
+
+                    if (costCurrent > costNext)
+                    {
+                       
+                        double tempHour = todolist_hour[j];
+                        int tempType = todolist_type[j];
+                        string temptodoList = todoList[j];
+                        bool tempstatus = todolist_status[j];
+                        todolist_status[j] = todolist_status[j + 1];
+                        todoList[j] = todoList[j + 1];
+
+                        todolist_hour[j] = todolist_hour[j + 1];
+                        todolist_type[j] = todolist_type[j + 1];
+
+                        todolist_status[j + 1] = tempstatus;
+                        todoList[j + 1] = temptodoList;
+                        todolist_hour[j + 1] = tempHour;
+                        todolist_type[j + 1] = tempType;
+                    }
+                }
+            }
+            printListTask();
+        }
+        
+
+
+        static void FindTaskByPrice()
+        {
+            Console.WriteLine("input min of price you want find ");
+            double min_price = Convert.ToDouble(Console.ReadLine());
+            Console.WriteLine(" input max of price you want find ");
+            double max_price = Convert.ToDouble(Console.ReadLine());
+            for (int t = 0; t < n_tasks; t++)
+            {
+                if (min_price <= getTaskCost(todolist_type[t], todolist_hour[t]) && getTaskCost(todolist_type[t], todolist_hour[t]) <= max_price)
+                {
+                    
+
+                        Console.WriteLine($"Task no{t + 1}: {todoList[t]} -- State: " +
+
+                            $"Type: {getTypeName(todolist_type[t])} -- " +
+
+                            $" Estimated hours: {todolist_hour[t]} -- " +
+
+                            (todolist_status[t] ? "Done" : "Not done")
+
+                            + $" -- Cost: {getTaskCost(todolist_type[t], todolist_hour[t])} USD"
+                            );
+                    
+                }
+            }
+
+        }
+        
+        
+
+
+        static void createNewTasks()
+        {
+            // Biến kiểm tra có tiếp tục nhập công việc hay không
+            bool isContinueInputTask = true;
+
+            while (isContinueInputTask)
+            {
+                n_tasks++;
+                Console.WriteLine("Input your no" + n_tasks + " task: ");
+                // Nhập công việc vào danh sách
+                todoList[n_tasks - 1] = Console.ReadLine();
+                // Nhập giá trị loại công việc
+                todolist_type[n_tasks - 1] = inputTaskType(n_tasks);
+                // Nhập số giờ ước tính để hoàn thành công việc
+                Console.WriteLine("Input your no" + n_tasks + " task hour: ");
+                todolist_hour[n_tasks - 1] = Convert.ToDouble(Console.ReadLine());
+                // Mặc định công việc chưa hoàn thành
+                todolist_status[n_tasks - 1] = false;
+                Console.WriteLine("Do you want to continue input task? (y/n)");
+                string input = Console.ReadLine();
+                // Kiểm tra người dùng có muốn tiếp tục nhập công việc hay không
+                if (input != "y")
+                {
+                    isContinueInputTask = false;
+                }
+            }
+        }
+
+        static void updateAllTaskStatus()
+        {
+            Console.WriteLine("------------------Change Task Status--------------------");
+
+            for (int i = 0; i < n_tasks; i++)
+            {
+                Console.WriteLine($"Have you finish task no{i + 1} - {todoList[i]}? (y/n)");
+                string input = Console.ReadLine();
+                if (input == "y") // Nếu nhập vào là "y" thì trạng thái của task thứ i được đổi thành true (done)
+                {
+                    todolist_status[i] = true;
+                }
+            }
+        }
+
+        static void Main(string[] args)
+        {
+            menu();
+
+        }
+
+    }
+}
